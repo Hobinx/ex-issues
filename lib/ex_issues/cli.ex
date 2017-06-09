@@ -30,16 +30,24 @@ defmodule ExIssues.CLI do
     System.halt(0)
   end
 
-  def process({user, project, _count}) do
-    Issues.GithubIssues.fetch(user, project)
+  def process({user, project, count}) do
+    ExIssues.GithubIssues.fetch(user, project)
     |> decode_response
+    |> sort_into_ascending_order
+    |> Enum.take(count)
+    |> print_table_for_columns(["number", "created_at", "title"])
   end
 
-  def decode_response({:ok, body}), do: body
+  def decode_response({:ok, body}), do: Map.get(body, "items")
 
   def decode_response({:error, error}) do
-    {_, message} = List.keyfind(error, "message", 0) 
+    message = Map.get(error, "message") 
     IO.puts "Error fetching from Github: #{message}"
     System.halt(2)
+  end
+
+  def sort_into_ascending_order(list_of_issues) do
+    Enum.sort list_of_issues,
+              fn i1, i2 -> Map.get(i1, "created_at") <= Map.get(i2, "created_at") end
   end
 end
