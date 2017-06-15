@@ -1,4 +1,5 @@
 defmodule ExIssues.CLI do
+  import ExIssues.TableFormatter, only: [ print_table_for_columns: 2 ]
   @default_count 4
 
   def run(argv) do
